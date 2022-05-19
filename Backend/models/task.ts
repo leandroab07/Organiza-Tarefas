@@ -1,13 +1,19 @@
+import { RowDataPacket, ResultSetHeader } from "mysql2";
+import { Pool } from "mysql2/promise";
 import { PostTaskRequestBody } from "../interfaces/taskInterfaces";
 
 export default class TaskModel {
-  constructor() {}
+  constructor(private connection: Pool) {}
 
-  getAll() {
+  async getAll() {
+    const [ result ] = await this.connection.execute<RowDataPacket[]>(`SELECT * FROM Tasks`);
 
+    return result[0] as PostTaskRequestBody[];
   }
 
-  create(task: PostTaskRequestBody) {
-    return
+  async create(task: PostTaskRequestBody) {
+    const [ result ] = await this.connection.execute<ResultSetHeader>(`INSERT INTO Tasks(description, status) VALUES(?, ?)`, [task.taskDescription, task.taskStatus]);
+
+    return { id: result.insertId };
   }
 }
